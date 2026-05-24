@@ -1,0 +1,108 @@
+import { useState } from "react";
+
+function decideSurname(father, mother) {
+  if (
+    (father.clan === "Wu" && mother.clan === "Qi") ||
+    (father.clan === "Qi" && mother.clan === "Wu")
+  ) {
+    return Math.random() > 0.5 ? "Wu" : "Qi";
+  }
+
+  if (mother.strength > father.strength) return mother.clan;
+  if (father.strength > mother.strength) return father.clan;
+
+  return father.clan;
+}
+
+export default function App() {
+  const [showFamily, setShowFamily] = useState(false);
+
+  const [family, setFamily] = useState([
+    {
+      id: 1,
+      name: "Wu Chen",
+      clan: "Wu",
+      strength: 80,
+      gender: "M",
+      parentIds: []
+    },
+    {
+      id: 2,
+      name: "Huo Meilin",
+      clan: "Huo",
+      strength: 90,
+      gender: "F",
+      parentIds: []
+    }
+  ]);
+
+  function getChildren(id) {
+    return family.filter((p) => p.parentIds.includes(id));
+  }
+
+  function createChild() {
+    const father = family.find((p) => p.id === 1);
+    const mother = family.find((p) => p.id === 2);
+
+    const clan = decideSurname(father, mother);
+
+    const child = {
+      id: Date.now(),
+      name: `${clan} Child ${family.length}`,
+      clan,
+      strength: Math.floor(Math.random() * 60 + 20),
+      gender: Math.random() > 0.5 ? "M" : "F",
+      parentIds: [father.id, mother.id]
+    };
+
+    setFamily([...family, child]);
+  }
+
+  return (
+    <div className="app">
+      <div className="nav">
+        <button onClick={() => setShowFamily(false)}>Cultivation</button>
+        <button onClick={() => setShowFamily(true)}>Family</button>
+      </div>
+
+      {!showFamily ? (
+        <div>
+          <h1>Cultivation World</h1>
+
+          <button onClick={createChild}>
+            Create Child (Genealogy)
+          </button>
+
+          <h2>Members</h2>
+
+          {family.map((p) => (
+            <div key={p.id} className="card">
+              <b>{p.name}</b> ({p.clan})
+              <div>Strength: {p.strength}</div>
+              <div>Children: {getChildren(p.id).length}</div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div>
+          <h1>Family Tree</h1>
+
+          {family.map((p) => (
+            <div key={p.id} className="card">
+              <b>{p.name}</b> - {p.clan}
+
+              <div>
+                Children:
+                <ul>
+                  {getChildren(p.id).map((c) => (
+                    <li key={c.id}>{c.name}</li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
